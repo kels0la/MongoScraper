@@ -1,0 +1,13 @@
+.nav-item {
+    margin-right: 3px;
+    margin-top: 3px;
+}
+@media (min-width: 768px) {
+  .modal-xl {
+    width: 60%;
+    max-width:1200px;
+  }
+}
+body {
+  font-family: 'Sriracha', cursive;
+}
