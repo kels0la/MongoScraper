@@ -1,9 +1,6 @@
 let db = require("../models");
 let axios = require('axios'); // HTTP Request
 let cheerio = require('cheerio'); // Web Scrapper
-let mongoose = require('mongoose'); // MongoDB ORM
-
-mongoose.connect("mongodb://localhost/scrapingMongos");
 
 module.exports = function (app) {
     app.get("/scrape", function (req, res) {
