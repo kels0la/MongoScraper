@@ -77,6 +77,20 @@ module.exports = function (app) {
         });
     });
 
+    app.get("/notes", function (req, res) {
+        // Go into the mongo collection, and find all docs where "saved" is true
+        db.Note.find({}, (error, found) => {
+            // Show any errors
+            if (error) {
+                console.log(error);
+            }
+            else {
+                // Otherwise, send the articles we found to the browser as a json
+                res.json(found);
+            }
+        });
+    });
+
     app.put("/delete/:id", (req, res) => {
         db.Article.deleteOne({ _id: req.params.id }, (err) => {
             if (err) {
@@ -86,24 +100,55 @@ module.exports = function (app) {
             }
         });
     });
-    // Route for saving/updating an Article's associated Note
-    app.post("/savedarticles/:id", (req, res) => {
-        // save the new note that gets posted to the Notes collection
-        // then find an article from the req.params.id
-        // and update it's "note" property with the _id of the new note
-        db.Note.create(req.body)
-            .then( (dbNote) => {
-                console.log(dbNote)
-                return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
-            })
-            .then( (dbArticle) => {
-                // If the User was updated successfully, send it back to the client
-                res.json(dbArticle);
-                console.log(dbArticle)
-            })
-            .catch( (err) => {
-                // If an error occurs, send it back to the client
+    app.put("/deleteNote/:id", (req, res) => {
+        db.Note.deleteOne({ _id: req.params.id }, (err) => {
+            if (err) {
                 res.json(err);
-            });
+            } else {
+                res.send("Removed");
+            }
+        });
     });
+    // Route for saving/updating an Article's associated Note
+    // app.post("/notes/:id", (req, res) => {
+    //     // save the new note that gets posted to the Notes collection
+    //     // then find an article from the req.params.id
+    //     // and update it's "note" property with the _id of the new note
+    //     db.Note.create(req.body)
+    //         .then( (dbNote) => {
+    //             console.log(dbNote)
+    //             return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
+    //         })
+    //         .then( (dbArticle) => {
+    //             // If the User was updated successfully, send it back to the client
+    //             res.json(dbArticle);
+    //             console.log(dbArticle)
+    //         })
+    //         .catch( (err) => {
+    //             // If an error occurs, send it back to the client
+    //             res.json(err);
+    //         });
+    // });
+    app.post("/notes/:id", function (req, res) {
+        console.log(req.body)
+        let newNote = new db.Note(req.body);
+        newNote.save((err, theNote) => {
+            if (err) {
+                res.json(err);
+                console.log(err);
+            } else {
+                db.Article.findOneAndUpdate(
+                     {_id: req.params.id }, {$push: {note: theNote._id}},
+                     {new: true},
+                     function(err, newerNote){
+                         if (err) {
+                             console.log(err);
+                         } else {
+                             res.send(newerNote);
+                         }
+                     }
+                )
+            }
+        })
+    })
 };

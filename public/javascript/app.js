@@ -58,39 +58,62 @@ $(document).ready(()=> {
     $("#articles").empty();
   });
   
-  let IDofNote = null //Needed so it doesn't continue to add an extra call on click of the note (submits note multiple times without it)
+  let IDofArticle = null //Needed so it doesn't continue to add an extra call on click of the note (submits note multiple times without it)
   $(document).on("click", ".note", (element) => {
     element.preventDefault();
+    let articleID = element.target.dataset.id
+    console.log(articleID);
+    $.ajax({
+      method: "GET",
+      url: "/savedarticles/" + articleID
+    }).then((data) => {
+      $('.articleNotes').empty();
+      console.log(data[0])
+      let notes = data[0].note;
+
+      $(".articleName").html(`Notes for: "${data[0].title}"<p></p><h6>By: ${data[0].author}</h6>`);
+      if (notes.length > 0) {
+        $('.articleNotes').empty();
+        for (let i = 0; i < notes.length; i++) {
+          let button = (`<a><button type="button" data-id="${notes[i]._id}" class="close" data-dismiss="modal">&times;</button></a>`)
+          // '<a class href=/deleteNote/' + notes[i]._id + '><button type="button" class="close">&times;</button></a>';
+          $('.articleNotes').append('<div class="panel panel-default"><div class="noteText panel-body">' + notes[i].text + button + '</div></div>');
+        }
+      } else {
+        $('.articleNotes').html("No notes for this article yet");
+      }
+      IDofArticle = articleID
+    });
+  });
+
+  //Deleting a Note
+  $(document).on("click", ".close", function (element) {
+    console.log(element.target);
     let noteID = element.target.dataset.id
     console.log(noteID);
     $.ajax({
-      method: "GET",
-      url: "/savedarticles/" + noteID
+      method: "PUT",
+      url: "/deleteNote/" + noteID
     }).then((data) => {
-      $(".articleName").html(`Notes for: "${data[0].title}"<p></p><h6>By: ${data[0].author}</h6>`);
-      if (data[0].note) {
-        $(".articleNotes").html(`Note: ${data[0].note.text}`);//Adding notes from the database assigned to this article
-      }
-      IDofNote = noteID
+      console.log(data);
+      modal.location.reload(true);
     });
   });
-  
-    $(".submitNote").on("click", (event) => {
-      console.log(IDofNote);
-      event.preventDefault();
-      
-      let noteText = $("#theNotes").val().trim();
-      console.log(noteText);//We then take this note text and add it to the database assigned by the ID.
-      $.ajax({
-        method: "POST",
-        url: "/savedarticles/" + IDofNote,
-        data: {
-          text: noteText
-        }
-      }).then((data) => {
-        $("#theNotes").val("");
-      });
+
+    //Adding a note
+  $(".submitNote").on("click", (event) => {
+    console.log(IDofArticle);
+    event.preventDefault();
+    let noteText = $("#theNotes").val().trim();
     
+    $.ajax({
+      method: "POST",
+      url: "/notes/" + IDofArticle,
+      data: {
+        text: noteText
+      }
+    }).then((data) => {
+      $("#theNotes").val("");
     });
-  
+  });
 });  
