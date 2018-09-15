@@ -1,4 +1,4 @@
-let db = require("../models");
+let db = require("./models");
 let axios = require('axios'); // HTTP Request
 let cheerio = require('cheerio'); // Web Scrapper
 
