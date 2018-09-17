@@ -4,7 +4,7 @@ var logger = require("morgan");
 var exphbs = require("express-handlebars");
 let mongoose = require('mongoose'); // MongoDB ORM
 
-var PORT = 8000;
+var PORT = process.env.PORT || 8000;
 
 // Initialize Express
 var app = express();
